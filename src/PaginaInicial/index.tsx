@@ -10,9 +10,16 @@ import {
   TableCell,
   TableBody,
   TablePagination,
+
 } from '@material-ui/core';
 import axios from 'axios';
 import { BASE_URL } from 'utils/requests';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import pt from 'date-fns/locale/pt';
+import { format } from 'date-fns';
+
+
 
 const useStyles = makeStyles({
   container: {
@@ -41,9 +48,9 @@ interface Transferencia {
 
 function PaginaInicial() {
   const classes = useStyles();
-  const [textField1, setTextField1] = useState('');
-  const [textField2, setTextField2] = useState('');
-  const [textField3, setTextField3] = useState('');
+  const [dataInicio, setDataInicio] = useState('');
+  const [dataFim, setDataFim] = useState('');
+  const [nome, setNome] = useState('');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [transferencias, setTransferencias] = useState<Transferencia[] | null>(null);
@@ -54,7 +61,7 @@ function PaginaInicial() {
 
   const fetchData = async () => {
     try {
-      const response = await axios.get(BASE_URL+'/v1/transferencia');
+      const response = await axios.get(BASE_URL + '/v1/transferencia');
       console.log(response.data)
       setTransferencias(response.data);
     } catch (error) {
@@ -64,7 +71,7 @@ function PaginaInicial() {
 
   const handleSearch = async () => {
     try {
-      const response = await axios.get(BASE_URL+`/v1/transferencia?nome=${textField1}`);
+      const response = await axios.get(BASE_URL + `/v1/transferencia?dataInicio=${dataInicio}&dataFim=${dataFim}&nome=${nome}`);
       console.log(response.data)
       setTransferencias(response.data);
     } catch (error) {
@@ -72,44 +79,49 @@ function PaginaInicial() {
     }
   };
 
-  const handleChangePage = (_: React.MouseEvent<HTMLButtonElement> | null, newPage: number) => {
-    setPage(newPage);
+  const handleDataInicioChange = (date: Date | null) => {
+    const adjustedDate = date ? new Date(date.getTime() + date.getTimezoneOffset() * 60 * 1000) : null;
+    setDataInicio(adjustedDate ? adjustedDate.toISOString().slice(0, 10) : '');
   };
-  
-  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
+
+  const handleDataFimChange = (date: Date | null) => {
+    const adjustedDate = date ? new Date(date.getTime() + date.getTimezoneOffset() * 60 * 1000) : null;
+    setDataFim(adjustedDate ? adjustedDate.toISOString().slice(0, 10) : '');
   };
 
   return (
     <div className={classes.container}>
-      <Grid container spacing={2}>
-        <Grid item xs={4}>
+      <Grid container spacing={2} alignItems="center">
+        
+        
+      <Grid item xs={3}>
+        <DatePicker
+          selected={dataInicio !== '' ? new Date(dataInicio) : null}
+          onChange={handleDataInicioChange}
+          className={classes.textField}
+          dateFormat="dd/MM/yyyy" // Formato de exibição da data
+          locale={pt}
+        />
+      </Grid>
+
+      <Grid item xs={3}>
+        <DatePicker
+          selected={dataFim !== '' ? new Date(dataFim) : null}
+          onChange={handleDataFimChange}
+          className={classes.textField}
+          dateFormat="dd/MM/yyyy" // Formato de exibição da data
+          locale={pt}
+        />
+      </Grid>
+
+
+
+        <Grid item xs={3}>
           <TextField
-            label="Data de início"
+            label="Nome do Operador"
             variant="outlined"
-            value={textField1}
-            onChange={(e) => setTextField1(e.target.value)}
-            className={classes.textField}
-            fullWidth
-          />
-        </Grid>
-        <Grid item xs={4}>
-          <TextField
-            label="Data de Fim"
-            variant="outlined"
-            value={textField2}
-            onChange={(e) => setTextField2(e.target.value)}
-            className={classes.textField}
-            fullWidth
-          />
-        </Grid>
-        <Grid item xs={4}>
-          <TextField
-            label="Nome do operador transacionado"
-            variant="outlined"
-            value={textField3}
-            onChange={(e) => setTextField3(e.target.value)}
+            value={nome}
+            onChange={(e) => setNome(e.target.value)}
             className={classes.textField}
             fullWidth
           />
@@ -136,15 +148,15 @@ function PaginaInicial() {
               </TableRow>
             </TableHead>
             <TableBody>
-  {transferencias?.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((transferencia) => (
-    <TableRow key={transferencia.id}>
-      <TableCell>{transferencia.dataTransferencia}</TableCell>
-      <TableCell>{transferencia.valor}</TableCell>
-      <TableCell>{transferencia.tipo}</TableCell>
-      <TableCell>{transferencia.nomeOperadorTransacao}</TableCell>
-    </TableRow>
-  ))}
-</TableBody>
+              {Array.isArray(transferencias) && transferencias.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((transferencia) => (
+                <TableRow key={transferencia.id}>
+                  <TableCell>{format(new Date(transferencia.dataTransferencia), 'dd/MM/yyyy')}</TableCell>
+                  <TableCell>{transferencia.valor}</TableCell>
+                  <TableCell>{transferencia.tipo}</TableCell>
+                  <TableCell>{transferencia.nomeOperadorTransacao}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
           </Table>
           {/* <TablePagination
             rowsPerPageOptions={[5, 10, 25]}
