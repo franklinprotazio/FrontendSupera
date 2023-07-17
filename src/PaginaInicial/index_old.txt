@@ -1,0 +1,175 @@
+import React, { useState, useEffect } from 'react';
+import {
+  TextField,
+  Button,
+  makeStyles,
+  Grid,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TablePagination as MUITablePagination,
+  TableBody,
+} from '@material-ui/core';
+import axios from 'axios';
+
+
+interface Transferencia {
+    id: number | null;
+    dataTransferencia: string;
+    valor: number;
+    tipo: string;
+    nomeOperadorTransacao: string;
+    conta: ContaRetornoDTO;
+  }
+  
+  
+  interface ContaRetornoDTO {
+    // Defina a estrutura da interface ContaRetornoDTO aqui
+  }
+
+  const [transferencias, setTransferencias] = useState<Transferencia[] | null>(null);
+
+  
+
+
+const useStyles = makeStyles({
+  container: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: '100vh',
+  },
+  textField: {
+    marginBottom: '16px',
+  },
+  button: {
+    marginTop: '16px',
+  },
+});
+
+function PaginaInicial() {
+  const classes = useStyles();
+  const [textField1, setTextField1] = useState('');
+  const [textField2, setTextField2] = useState('');
+  const [textField3, setTextField3] = useState('');
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const transferencia: Transferencia[] | null = null;
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      const response = await axios.get('/v1/transferencia');
+      setTransferencias(response.data);
+    } catch (error) {
+      console.error('Erro ao buscar dados:', error);
+    }
+  };
+
+  const handleSearch = async () => {
+    try {
+      const response = await axios.get(`/v1/transferencia?nome=${textField1}`);
+      setTransferencias(response.data);
+    } catch (error) {
+      console.error('Erro ao buscar dados:', error);
+    }
+  };
+
+  const handleChangePage = (_ :any, newPage: number) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  return (
+    <div className={classes.container}>
+      <Grid container spacing={2}>
+        <Grid item xs={6}>
+          <TextField
+            label="Caixa de Texto 1"
+            variant="outlined"
+            value={textField1}
+            onChange={(e) => setTextField1(e.target.value)}
+            className={classes.textField}
+            fullWidth
+          />
+        </Grid>
+        <Grid item xs={6}>
+          <TextField
+            label="Caixa de Texto 2"
+            variant="outlined"
+            value={textField2}
+            onChange={(e) => setTextField2(e.target.value)}
+            className={classes.textField}
+            fullWidth
+          />
+        </Grid>
+        <Grid item xs={12}>
+          <TextField
+            label="Caixa de Texto 3"
+            variant="outlined"
+            value={textField3}
+            onChange={(e) => setTextField3(e.target.value)}
+            className={classes.textField}
+            fullWidth
+          />
+        </Grid>
+        <Grid item xs={12}>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleSearch}
+            className={classes.button}
+            fullWidth
+          >
+            Pesquisar
+          </Button>
+        </Grid>
+        <Grid item xs={12}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Coluna 1</TableCell>
+                <TableCell>Coluna 2</TableCell>
+                <TableCell>Coluna 3</TableCell>
+                <TableCell>Coluna 4</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+            {transferencias &&
+  transferencias
+    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+    .map((transferencia) => (
+      <TableRow key={transferencia.id}>
+        <TableCell>{transferencia.dataTransferencia}</TableCell>
+        <TableCell>{transferencia.valor}</TableCell>
+        <TableCell>{transferencia.tipo}</TableCell>
+        <TableCell>{transferencia.nomeOperadorTransacao}</TableCell>
+      </TableRow>
+    ))}
+            </TableBody>
+          </Table>
+          {/* <MUITablePagination
+            rowsPerPageOptions={[5, 10, 25]}
+            component="div"
+            count={transferencias.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onChangePage={handleChangePage}
+            onChangeRowsPerPage={handleChangeRowsPerPage}
+          /> */}
+        </Grid>
+      </Grid>
+    </div>
+  );
+}
+
+export default PaginaInicial;
