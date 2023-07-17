@@ -6,7 +6,6 @@ Este repositório contém o código-fonte do projeto FrontendSupera, que faz par
 
 O projeto FrontendSupera foi desenvolvido utilizando as seguintes tecnologias:
 
-- HTML5
-- CSS3
-- JavaScript
 - React
+- TypeScript
+- HTML e CSS: Como parte do desenvolvimento frontend,
